@@ -6,7 +6,7 @@ from torch import nn
 from torch.nn import functional as F
 from torchvision import transforms as T
 
-from config import DEVICE
+from config import DEVICE, PROMPT
 
 
 def spherical_dist_loss(x, y):
@@ -112,7 +112,7 @@ class MakeCutouts(nn.Module):
 
 
 class ClipPrompt:
-    def __init__(self, prompt, model=None, preprocess=None):
+    def __init__(self, model=None, preprocess=None):
         super(ClipPrompt, self).__init__()
 
         self.clip_model = "ViT-B/32"
@@ -127,9 +127,7 @@ class ClipPrompt:
             self.model = model
             self.preprocess = preprocess
 
-        self.prompt = prompt
-
-        text_inputs = clip.tokenize(self.prompt).to(DEVICE)
+        text_inputs = clip.tokenize(PROMPT).to(DEVICE)
 
         with torch.no_grad():
             self.text_features = self.model.encode_text(text_inputs)

@@ -9,4 +9,6 @@ NUM_LINES = 10
 
 LR = 0.1
 
-ITERATIONS = 100
+ITERATIONS = 200
+
+PROMPT = "A panda"  # A prompt for clip just for testing

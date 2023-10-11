@@ -8,8 +8,8 @@ from fast_pixel import FastPixelRenderer
 
 from config import ITERATIONS
 
-# aes_loss = AestheticLoss()
-loss_function = ClipPrompt(prompt="A panda")
+loss_function = AestheticLoss()
+# loss_function = ClipPrompt(prompt="A panda")
 
 render = FastPixelRenderer()
 
@@ -32,8 +32,8 @@ for i in tqdm(range(ITERATIONS + 1)):
     for optimizer in optimizers:
         optimizer.step()
 
-    # Save the image each 10 iterations
-    if i % 10 == 0:
+    # Save the image each 20 iterations
+    if i % 20 == 0:
         print("Loss: ", loss.item())
         save_image(img, f"images/img_{i}.png")
 
