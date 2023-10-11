@@ -134,7 +134,7 @@ class ClipPrompt:
         with torch.no_grad():
             self.text_features = self.model.encode_text(text_inputs)
 
-        self.mk = MakeCutouts(cut_size=224, cutn=10).to(DEVICE)
+        self.mk = MakeCutouts(cut_size=224, cutn=50).to(DEVICE)
 
     def evaluate(self, img):
         img = img.to(DEVICE)
