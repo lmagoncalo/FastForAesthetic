@@ -142,6 +142,6 @@ class ClipPrompt:
         into = self.mk(img)
 
         image_features = self.model.encode_image(into)
-        cosine_similarity = torch.cosine_similarity(self.text_features, image_features, dim=-1).mean()
+        cosine_similarity = -torch.cosine_similarity(self.text_features, image_features, dim=-1).mean()
 
         return cosine_similarity

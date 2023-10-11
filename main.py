@@ -33,7 +33,7 @@ for i in tqdm(range(ITERATIONS + 1)):
         optimizer.step()
 
     # Save the image each 10 iterations
-    if i % 50 == 0:
+    if i % 10 == 0:
         print("Loss: ", loss.item())
         save_image(img, f"images/img_{i}.png")
 
