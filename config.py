@@ -2,13 +2,16 @@ import torch
 
 DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-IMG_SIZE = 224
+IMG_SIZE = 224  # Render output size
 
-NUM_PIXELS = 28
-NUM_LINES = 10
+CLIP_MODEL = "ViT-B/16"  # CLIP model to be used in the loss
 
-LR = 0.1
+AESTHETIC_MODEL = "ava_vit_b_16_linear.pth"  # Aesthetic model, needs to be adapted to the CLIP model
 
-ITERATIONS = 200
+NUM_PIXELS = 28  # Number of pixel for each side, i.e. 28x28 pixels renderer as a 224x224 image
+
+LR = 0.1  # Learning rate
+
+ITERATIONS = 200  # Number of iterations
 
 PROMPT = "A panda"  # A prompt for clip just for testing
