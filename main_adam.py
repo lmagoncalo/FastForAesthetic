@@ -42,7 +42,7 @@ def init_simulacra():
 def eval_simulacra(img, model, clip_model, normalizer):
     device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
     # img = Image.fromarray((image_numpy * 1).astype(np.uint8))
-    img = TF.resize(img, 224, transforms.InterpolationMode.LANCZOS)
+    # img = TF.resize(img, 224, transforms.InterpolationMode.LANCZOS)
     img = TF.center_crop(img, (224, 224))
     # img = TF.to_tensor(img).to(device)
     img = img.to(device)
@@ -89,12 +89,13 @@ class MLP(nn.Module):
 
 
 def init_diffusion():
+    device = "cuda" if torch.cuda.is_available() else "cpu"
     model = MLP(768)  # CLIP embedding dim is 768 for CLIP ViT L 14
     s = torch.load(
         "models/sac+logos+ava1-l14-linearMSE.pth", map_location=torch.device('cpu'))  # load the model you trained previously or the model available in this repo
     model.load_state_dict(s)
     model.eval()
-    device = "cuda" if torch.cuda.is_available() else "cpu"
+    model.to(device)
     model2, preprocess = clip.load("ViT-L/14", device=device)  # RN50x64
 
     return model, model2, preprocess
@@ -133,16 +134,16 @@ for i in tqdm(range(ITERATIONS + 1)):
 
     # Evaluate the image with the aesthetic model
     laion_val = eval_diffusion(img, diff_model, diff_model_2, preprocess)
-    simulacra_val = eval_simulacra(img, simu_model, simu_clip, simu_norm)
+    # simulacra_val = eval_simulacra(img, simu_model, simu_clip, simu_norm)
 
     # Backpropagate
-    loss = laion_val + simulacra_val
+    loss = -laion_val
     loss.backward()
 
     for optimizer in optimizers:
         optimizer.step()
 
     # Save the image each 20 iterations
-    if i % 10 == 0:
+    if i % 20 == 0:
         print("Loss: ", loss.item())
-        save_image(img, f"images/img_{i}.png")
+        save_image(img, f"images_laion/img_{i}.png")
