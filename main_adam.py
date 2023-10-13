@@ -1,17 +1,14 @@
 import clip
 import numpy as np
-import torch
 from torch import nn
 from torch.nn import functional as F
-from torchvision.transforms import functional as TF
 from torchvision import transforms
+from torchvision.transforms import functional as TF
 from torchvision.utils import save_image
 from tqdm import tqdm
 
-from clip_fitness_adam import ClipPrompt
-from fast_pixel_adam import FastPixelRenderer
-
 from config import *
+from fast_pixel_adam import FastPixelRenderer
 
 
 class AestheticMeanPredictionLinearModel(nn.Module):

@@ -219,12 +219,10 @@ brisque_model, nima_tec, nima_aes, diff_model, diff_model_2, preprocess, simu_mo
 
 prompts = "A Panda"
 
-clip_fitness = ClipPrompt(prompts)
 
 def evaluate(individual):
     np_image = renderer.render(individual)
 
-    """
     brisque_val = eval_brisque(np_image, brisque_model)
     nima_tec_val = eval_nima([np_image], nima_tec)[0]
     nima_aes_val = eval_nima([np_image], nima_aes)[0]
@@ -234,9 +232,6 @@ def evaluate(individual):
     # print("Brisque:", brisque_val, "NIMA tec:", nima_tec_val, "NIMA aes:", nima_aes_val, "Laion:", laion_val, "Simulacra:", simulacra_val.item())
 
     return brisque_val + nima_tec_val + nima_aes_val + laion_val + simulacra_val.item()
-    """
-    fitness = clip_fitness.evaluate(np_image)
-    return fitness
 
 
 if __name__ == "__main__":
