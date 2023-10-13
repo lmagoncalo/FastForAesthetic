@@ -214,9 +214,6 @@ def inits():
     return brisque_model, nima_tec, nima_aes, diff_model, diff_model_2, preprocess, simu_model, simu_clip, simu_norm
 
 
-print("init all")
-brisque_model, nima_tec, nima_aes, diff_model, diff_model_2, preprocess, simu_model, simu_clip, simu_norm = inits()
-
 
 def evaluate(individual):
     np_image = renderer.render(individual)
@@ -227,13 +224,17 @@ def evaluate(individual):
     laion_val = eval_diffusion(np_image, diff_model, diff_model_2, preprocess)
     simulacra_val = eval_simulacra(np_image, simu_model, simu_clip, simu_norm)
 
-    # print("Brisque:", brisque_val, "NIMA tec:", nima_tec_val, "NIMA aes:", nima_aes_val, "Laion:", laion_val, "Simulacra:", simulacra_val.item())
+    # print("Brisque:", brisque_val, "NIMA tec:", nima_tec_val, "NIMA aes:", nima_aes_val,
+    # "Laion:", laion_val, "Simulacra:", simulacra_val.item())
 
     return brisque_val + nima_tec_val + nima_aes_val + laion_val + simulacra_val.item()
 
 
 if __name__ == "__main__":
     renderer = FastPixelRenderer()
+
+    print("init all")
+    brisque_model, nima_tec, nima_aes, diff_model, diff_model_2, preprocess, simu_model, simu_clip, simu_norm = inits()
 
     creator.create("FitnessMax", base.Fitness, weights=(1.0,))
     creator.create("Individual", np.ndarray, fitness=creator.FitnessMax)
