@@ -99,9 +99,9 @@ def init_simulacra():
     return model, clip_model, normalizer
 
 
-def eval_simulacra(img, model, clip_model, normalizer):
+def eval_simulacra(image_numpy, model, clip_model, normalizer):
     device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
-    # img = Image.fromarray((image_numpy * 1).astype(np.uint8))
+    img = Image.fromarray((image_numpy * 1).astype(np.uint8))
     img = TF.resize(img, 224, transforms.InterpolationMode.LANCZOS)
     img = TF.center_crop(img, (224, 224))
     img = TF.to_tensor(img).to(device)
@@ -216,8 +216,6 @@ def inits():
 
 print("init all")
 brisque_model, nima_tec, nima_aes, diff_model, diff_model_2, preprocess, simu_model, simu_clip, simu_norm = inits()
-
-prompts = "A Panda"
 
 
 def evaluate(individual):

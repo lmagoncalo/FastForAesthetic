@@ -14,7 +14,7 @@ LR = 0.1  # Learning rate
 
 SIGMA = 0.05
 
-POP_SIZE = 100
+POP_SIZE = 3
 
 ITERATIONS = 200  # Number of iterations
 
