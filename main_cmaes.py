@@ -28,6 +28,9 @@ from config import *
 from fast_pixel_cmaes import FastPixelRenderer
 
 
+device = "cuda" if torch.cuda.is_available() else "cpu"
+
+
 #### brisque
 def init_brisque():
     brisque_model_path = "models/brisque_model_live.yml"
@@ -99,14 +102,15 @@ def init_simulacra():
     return model, clip_model, normalizer
 
 
-def eval_simulacra(image_numpy, model, clip_model, normalizer):
-    device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
-    img = Image.fromarray((image_numpy * 1).astype(np.uint8))
-    img = TF.resize(img, 224, transforms.InterpolationMode.LANCZOS)
+def eval_simulacra(img, model, clip_model, normalizer):
+    # img = Image.fromarray((image_numpy * 1).astype(np.uint8))
+    # img = TF.resize(img, 224, transforms.InterpolationMode.LANCZOS)
+    # img = torch.tensor(img).reshape(1, 3, 224, 224).to(device)
     img = TF.center_crop(img, (224, 224))
-    img = TF.to_tensor(img).to(device)
-    img = normalizer(img)
-    clip_image_embed = F.normalize(clip_model.encode_image(img[None, ...]).float(), dim=-1)
+    # img = TF.to_tensor(img).to(device)
+    img = img.to(device)
+    # img = normalizer(img)
+    clip_image_embed = F.normalize(clip_model.encode_image(img).float(), dim=-1)
     score = model(clip_image_embed)
     # return score.item()
     return score
@@ -119,7 +123,7 @@ def init_diffusion():
         "models/sac+logos+ava1-l14-linearMSE.pth", map_location=torch.device('cpu'))  # load the model you trained previously or the model available in this repo
     model.load_state_dict(s)
     model.eval()
-    device = "cuda" if torch.cuda.is_available() else "cpu"
+    model = model.to(device)
     model2, preprocess = clip.load("ViT-L/14", device=device)  # RN50x64
 
     return model, model2, preprocess
@@ -159,18 +163,15 @@ def normalized(a, axis=-1, order=2):
     return a / np.expand_dims(l2, axis)
 
 
-def eval_diffusion(image_numpy, model, model2, preprocess):
-    device = "cuda" if torch.cuda.is_available() else "cpu"
+def eval_diffusion(img, model, model2, preprocess):
     # pil_image = Image.open(img_path)
-    pil_image = Image.fromarray((image_numpy * 1).astype(np.uint8))
-    image = preprocess(pil_image).unsqueeze(0).to(device)
+    # img = torch.tensor(img).reshape(1, 3, 224, 224).to(device)
+    # img = preprocess(img).unsqueeze(0).to(device)
 
-    with torch.no_grad():
-        image_features = model2.encode_image(image)
+    clip_image_embed = F.normalize(model2.encode_image(img).float(), dim=-1)
 
-    im_emb_arr = normalized(image_features.cpu().detach().numpy())
-
-    prediction = model(torch.from_numpy(im_emb_arr).to(device).type(torch.FloatTensor))
+    # prediction = model(torch.from_numpy(im_emb_arr).to(device).type(torch.FloatTensor))
+    prediction = model(clip_image_embed)
 
     return prediction.item()
 
@@ -218,6 +219,9 @@ def inits():
 def evaluate(individual):
     np_image = renderer.render(individual)
 
+    img = torch.tensor(np_image).reshape(1, 3, 224, 224).to(device)
+
+    """
     brisque_val = eval_brisque(np_image, brisque_model)
     nima_tec_val = eval_nima([np_image], nima_tec)[0]
     nima_aes_val = eval_nima([np_image], nima_aes)[0]
@@ -228,6 +232,11 @@ def evaluate(individual):
     # "Laion:", laion_val, "Simulacra:", simulacra_val.item())
 
     return brisque_val + nima_tec_val + nima_aes_val + laion_val + simulacra_val.item()
+    """
+
+    laion_val = eval_diffusion(img, diff_model, diff_model_2, preprocess)
+
+    return laion_val
 
 
 if __name__ == "__main__":
@@ -269,7 +278,7 @@ if __name__ == "__main__":
             for index, ind in enumerate(population):
                 img = renderer.render(ind)
                 img = Image.fromarray(img)
-                img.save(f"images/resultados_{cur_iteration}_{index}.png")
+                img.save(f"images_laion/resultados_{cur_iteration}_{index}.png")
 
         # Update the strategy with the evaluated individuals
         toolbox.update(population)
@@ -283,8 +292,8 @@ if __name__ == "__main__":
         if halloffame is not None:
             print("Best individual:", halloffame[0].fitness.values)
             img = renderer.render(halloffame[0])
-            img = Image.fromarray(img)
-            img.save(f"images/resultados_{cur_iteration}_best.png")
+            img = Image.fromarray((img * 255).astype(np.uint8))
+            img.save(f"images_laion/img_{cur_iteration}_best.png")
 
         print(logbook)
 

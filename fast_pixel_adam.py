@@ -23,4 +23,5 @@ class FastPixelRenderer:
 
     def render(self):
         img = F.interpolate(self.individual, size=(IMG_SIZE, IMG_SIZE), mode="nearest")
+        img = torch.clamp(img, min=0.0, max=1.0)
         return img

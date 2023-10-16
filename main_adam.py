@@ -1,5 +1,6 @@
 import clip
 import numpy as np
+from PIL import Image
 from torch import nn
 from torch.nn import functional as F
 from torchvision import transforms
@@ -46,7 +47,7 @@ def eval_simulacra(img, model, clip_model, normalizer):
     img = TF.center_crop(img, (224, 224))
     # img = TF.to_tensor(img).to(device)
     img = img.to(device)
-    img = normalizer(img)
+    # img = normalizer(img)
     clip_image_embed = F.normalize(clip_model.encode_image(img).float(), dim=-1)
     score = model(clip_image_embed)
     # return score.item()
@@ -104,9 +105,8 @@ def init_diffusion():
 def eval_diffusion(img, model, model2, preprocess):
     device = "cuda" if torch.cuda.is_available() else "cpu"
     # pil_image = Image.open(img_path)
-    # pil_image = Image.fromarray((image_numpy * 1).astype(np.uint8))
-    # image = preprocess(pil_image).unsqueeze(0).to(device)
-    img = img.to(device)
+    # pil_image = Image.fromarray((img * 1).astype(np.uint8))
+    # img = preprocess(img).unsqueeze(0).to(device)
 
     clip_image_embed = F.normalize(model2.encode_image(img).float(), dim=-1)
 
@@ -119,6 +119,7 @@ def eval_diffusion(img, model, model2, preprocess):
 # loss_function = ClipPrompt(prompts=PROMPT)
 diff_model, diff_model_2, preprocess = init_diffusion()
 simu_model, simu_clip, simu_norm = init_simulacra()
+
 
 render = FastPixelRenderer()
 
@@ -133,11 +134,11 @@ for i in tqdm(range(ITERATIONS + 1)):
     img = render.render()
 
     # Evaluate the image with the aesthetic model
-    laion_val = eval_diffusion(img, diff_model, diff_model_2, preprocess)
-    # simulacra_val = eval_simulacra(img, simu_model, simu_clip, simu_norm)
+    # fitness_value = eval_diffusion(img, diff_model, diff_model_2, preprocess)
+    fitness_value = eval_simulacra(img, simu_model, simu_clip, simu_norm)
 
     # Backpropagate
-    loss = -laion_val
+    loss = 1 / (1 + fitness_value)
     loss.backward()
 
     for optimizer in optimizers:
@@ -145,5 +146,30 @@ for i in tqdm(range(ITERATIONS + 1)):
 
     # Save the image each 20 iterations
     if i % 20 == 0:
-        print("Loss: ", loss.item())
-        save_image(img, f"images_laion/img_{i}.png")
+        print("Loss: ", fitness_value.item())
+        save_image(img, f"images_simulacra/img_{i}.png")
+
+
+
+"""
+device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
+
+img_diffusion_start = Image.open("images_laion/img_0.png")
+img_diffusion_start = TF.to_tensor(img_diffusion_start).unsqueeze(0).to(device)
+img_diffusion_end = Image.open("images_laion/img_200.png")
+img_diffusion_end = TF.to_tensor(img_diffusion_end).unsqueeze(0).to(device)
+
+img_simulacra_start = Image.open("images_simulacra/img_0.png")
+img_simulacra_start = TF.to_tensor(img_simulacra_start).unsqueeze(0).to(device)
+img_simulacra_end = Image.open("images_simulacra/img_200.png")
+img_simulacra_end = TF.to_tensor(img_simulacra_end).unsqueeze(0).to(device)
+
+metric_diffusion_start = eval_diffusion(img_diffusion_start, diff_model, diff_model_2, preprocess)
+metric_diffusion_end = eval_diffusion(img_diffusion_end, diff_model, diff_model_2, preprocess)
+
+metric_simulacra_start = eval_simulacra(img_simulacra_start, simu_model, simu_clip, simu_norm)
+metric_simulacra_end = eval_simulacra(img_simulacra_end, simu_model, simu_clip, simu_norm)
+
+print("eval_diffusion_start: ", metric_diffusion_start.item(), "eval_diffusion_end: ", metric_diffusion_end.item())
+print("eval_simulacra_start: ", metric_simulacra_start.item(), "eval_simulacra_end: ", metric_simulacra_end.item())
+"""

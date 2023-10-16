@@ -19,6 +19,5 @@ class FastPixelRenderer:
         ind = np.reshape(individual, (NUM_PIXELS, NUM_PIXELS, 3))
         # img = np.resize(ind, (224, 224, 3))
         img = cv2.resize(ind, dsize=(224, 224), interpolation=cv2.INTER_NEAREST)
-        img *= 255
-        img = img.astype(np.uint8)
+        img = np.clip(img, 0.0, 1.0)
         return img
